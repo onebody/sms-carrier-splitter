@@ -22,7 +22,7 @@ import zipfile
 ROOT = pathlib.Path(__file__).resolve().parent
 APP_NAME = "运营商拆表"
 HTML_NAME = "号码运营商分类与拆表.html"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 # .bat 只能出现 ASCII：cmd 按系统代码页解码批处理文本，UTF-8 中文会变乱码并截断命令。
 # 源路径一律从 %~dp0 取，所以整个文件夹放哪、叫什么（含中文）都能跑。
@@ -241,6 +241,7 @@ README = """运营商拆表 · 使用说明（版本 {version}）
   图标\\                   icon-1024.png / app.ico / icon.icns
   示例\\                   三张练习表：标准名单 / 号码嵌在文本里 / 没有号码列
   版本与校验.txt           版本、引擎版本、每个文件的 SHA256
+  LICENSE                  MIT 条款，与源码仓库同一份文件；转给同事时请一并留着
 
 七、拷给别人或放共享盘
   · 整个「{pkg}」文件夹一起拷，不能只拷 .bat。
@@ -333,7 +334,9 @@ def build_exe(pkg: pathlib.Path) -> pathlib.Path | None:
     subprocess.run([rsrc, "-ico", str(pkg / "图标/app.ico"), "-o", str(syso)], check=True, capture_output=True)
     try:
         env = {**os.environ, "GOOS": "windows", "GOARCH": "amd64", "CGO_ENABLED": "0", "GOFLAGS": "-trimpath"}
-        subprocess.run([go, "build", "-ldflags", "-H=windowsgui -s -w",
+        # -buildvcs=false：不往 PE 里嵌 vcs.revision/time。Go 会把当前提交号和「工作区是否脏」
+        # 写进二进制，于是同一段启动器代码每次提交后重编都换一个哈希，实测过的那份就对不上号了
+        subprocess.run([go, "build", "-buildvcs=false", "-ldflags", "-H=windowsgui -s -w",
                         "-o", str(pkg / f"{APP_NAME}.exe"), "."],
                        cwd=src, check=True, env=env, capture_output=True)
     finally:
@@ -359,6 +362,7 @@ def build(out_dir: pathlib.Path, deliverable: pathlib.Path, icon: pathlib.Path, 
     write(pkg / "tools/make_shortcut.ps1", SHORTCUT_PS1, crlf=True, bom=True)
     write(pkg / "tools/verify.ps1", VERIFY_PS1, crlf=True, bom=True)
     write(pkg / "使用说明.txt", README.format(version=VERSION, pkg=APP_NAME, seg_updated=seg_updated), bom=True)
+    shutil.copyfile(ROOT / "LICENSE", pkg / "LICENSE")
 
     appdir = pkg / f"Mac版-{APP_NAME}.app"
     write(appdir / "Contents/Info.plist", INFO_PLIST.format(version=VERSION))

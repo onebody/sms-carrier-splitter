@@ -31,6 +31,7 @@ const REQUIRED = [
   '示例/示例3-没有号码列.xlsx',
   '使用说明.txt',
   '版本与校验.txt',
+  'LICENSE',
 ];
 
 before(() => {
@@ -48,6 +49,27 @@ test('发布树里每个承诺的文件都真实存在且非空', () => {
 
 test('包内网页与交付的单文件 HTML 字节一致', () => {
   assert.equal(sha256(path.join(PKG, 'app/index.html')), sha256(DELIVERABLE));
+});
+
+test('MIT 条款随包一起发出去，同事拿到的那份也带着许可证', () => {
+  const mine = fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8');
+  const inPkg = fs.readFileSync(path.join(PKG, 'LICENSE'), 'utf8');
+  assert.equal(inPkg, mine, '包内 LICENSE 与仓库那份不一致');
+  assert.match(mine, /^MIT License\b/, '仓库 LICENSE 不是 MIT 全文');
+});
+
+test('exe 不带 VCS 戳：同一份源码在任何机器上编出来必须逐字节相同', () => {
+  const exe = path.join(PKG, '运营商拆表.exe');
+  if (!fs.existsSync(exe)) return; // 本机缺 go/rsrc 时跳过 exe，bat 是等价退路
+  let info;
+  try {
+    info = execFileSync('go', ['version', '-m', exe], { encoding: 'utf8' });
+  } catch (e) {
+    if (String(e.message).includes('ENOENT')) return; // 没有 go 就读不了 buildinfo，别把测试判死
+    throw e;
+  }
+  assert.doesNotMatch(info, /vcs\.revision/, '启动器里嵌了 vcs.revision，换机器重编会产出不同哈希，实测结论就对不上号');
+  assert.doesNotMatch(info, /vcs\.modified/);
 });
 
 test('三个 bat 脚本是纯 ASCII 且用 CRLF（含中文会被 cmd 按 GBK 解错）', () => {

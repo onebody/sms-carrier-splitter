@@ -10,7 +10,7 @@
 
 ## 拿来就用
 
-到 [Releases](../../releases) 下 `sms-carrier-splitter-v1.1.0.zip`，解压后整个文件夹拷给同事（附件名必须是英文，GitHub 会把中文名剥掉；解压出来的文件夹和里面的文件仍是中文名的 `运营商拆表`）：
+到 [Releases](../../releases) 下 `sms-carrier-splitter-v1.1.1.zip`，解压后整个文件夹拷给同事（附件名必须是英文，GitHub 会把中文名剥掉；解压出来的文件夹和里面的文件仍是中文名的 `运营商拆表`）：
 
 | 系统 | 怎么打开 |
 | --- | --- |
@@ -38,7 +38,7 @@ fixtures/            测试夹具（示例表由 test/make_sample.py 生成，�
 
 ```bash
 python3 build.py                      # src → 单文件 html（约 989 KB）
-python3 package.py                    # → dist/运营商拆表/ + dist/运营商拆表-v1.1.0.zip
+python3 package.py                    # → dist/运营商拆表/ + dist/运营商拆表-v1.1.1.zip
 ```
 
 要出 Windows exe 需要 `go` 和 `rsrc`（`go install github.com/akavel/rsrc@latest`）；缺失时 `package.py` 会跳过 exe 并打印提示，包里的 `启动.bat` 功能相同。
@@ -73,4 +73,6 @@ powershell -File test/windows_vm_bat_check.ps1 -Pkg C:\pkg-test\运营商拆表
 
 ## 许可
 
-第三方：SheetJS 社区版（`vendor/xlsx.full.min.js`，Apache-2.0，原始文件头保留）。本仓库当前是内部工具发布，未额外声明开源许可证；需要改成 MIT 之类的请自行提 PR 前先确认。
+本仓库与分发包（`LICENSE` 也一并打进 zip）都是 **MIT**，条款见 `LICENSE`。
+
+第三方：SheetJS 社区版（`vendor/xlsx.full.min.js`，Apache-2.0，原始文件头保留）；号段表按工信部号段核发公告整理（`src/segment.js`）。
