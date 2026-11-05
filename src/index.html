@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手机号运营商分类 · 拆分 · 下单</title>
+<style>
+  :root{--bg:#0f1419;--fg:#e6edf3;--muted:#8b98a5;--line:#22303c;--card:#161b22;--cm:#e8a33d;--cu:#d9534f;--ct:#4a90d9;--cb:#7bc77b;--ok:#3fb950;--warn:#d29922;--err:#f85149}
+  @media (prefers-color-scheme: light){:root{--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d8dee4;--card:#fff}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  main{max-width:1180px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:15px;margin:26px 0 10px;padding-left:9px;border-left:3px solid var(--ct)}
+  .sub{color:var(--muted);margin:0 0 18px}
+  #drop{border:2px dashed var(--line);border-radius:12px;padding:34px 20px;text-align:center;cursor:pointer;background:var(--card);transition:.15s}
+  #drop.hot{border-color:var(--ct);background:rgba(74,144,217,.08)}
+  #drop b{display:block;font-size:16px;margin-bottom:6px}
+  #drop small{color:var(--muted)}
+  button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+  button:hover{border-color:var(--ct)}
+  button.pri{background:var(--ct);border-color:var(--ct);color:#fff}
+  select,input{font:inherit;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+  input[type=number]{width:96px;text-align:right}
+  .msg{margin:14px 0;padding:10px 14px;border-radius:9px;border:1px solid var(--line);background:var(--card)}
+  .msg.ok{border-color:var(--ok)} .msg.warn{border-color:var(--warn)} .msg.err{border-color:var(--err)}
+  .row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:12px 0}
+  .row label{color:var(--muted)}
+  #opts{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  #opts[hidden]{display:none}
+  .cards{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+  .card{flex:1 1 120px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;text-align:center}
+  .card b{display:block;font-size:22px} .card span{color:var(--muted);font-size:12px}
+  .card.warn{border-color:var(--warn)}
+  table.grid{width:100%;border-collapse:collapse;font-size:13px}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+  table.grid th{background:var(--card);font-weight:600}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.hl{background:rgba(74,144,217,.1)}
+  td.note{white-space:normal;color:var(--muted);max-width:280px}
+  tr.dim td{opacity:.42}
+  tr.dim td.note{opacity:1}
+  .tag{padding:1px 8px;border-radius:999px;font-size:12px;border:1px solid transparent;white-space:nowrap}
+  .t-cm{color:var(--cm);border-color:var(--cm)} .t-cu{color:var(--cu);border-color:var(--cu)}
+  .t-ct{color:var(--ct);border-color:var(--ct)} .t-cb{color:var(--cb);border-color:var(--cb)}
+  .t-other{color:var(--muted);border-color:var(--line)}
+  .scroll{overflow:auto;border:1px solid var(--line);border-radius:10px}
+  tfoot td{background:var(--card);font-weight:600}
+  .small{color:var(--muted);font-size:12px}
+  #segNote{border-left:3px solid var(--warn);padding:6px 12px;background:var(--card);border-radius:0 8px 8px 0}
+  #segNote[hidden]{display:none}
+  footer{margin:30px 0 10px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
+  @media print{body{background:#fff;color:#000;padding:0}#drop,#opts,.cards,.msg,footer,#previewSection,button,.noprint{display:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>手机号运营商分类 · 拆表 · 下单清单</h1>
+  <p class="sub">纯本地运行：文件不上传、不联网；源 Excel 只读取不修改，结果另存为新文件。</p>
+
+  <div id="drop">
+    <b>把 Excel / CSV 拖到这里</b>
+    <small>支持 .xlsx / .xls / .csv；号码可以是文本，也可以是被 Excel 存成数字的 11 位号码</small>
+    <div style="margin-top:14px"><button id="btnFile" type="button" class="pri">选择文件</button></div>
+  </div>
+  <input id="file" type="file" accept=".xlsx,.xls,.csv,.xlsm,.ods" hidden>
+  <div id="msg" class="msg" hidden></div>
+
+  <div id="opts" hidden>
+    <div class="row">
+      <label>文件 <b id="fileName" style="color:var(--fg)"></b></label>
+    </div>
+    <div class="row">
+      <label>工作表 <select id="sheetSel"></select></label>
+      <label>号码列 <select id="colSel"></select></label>
+      <label><input type="checkbox" id="noHeader"> 该表没有表头行</label>
+      <label><input type="checkbox" id="normNum" checked> 号码列归一化为 11 位（去掉 +86/空格/连字符）</label>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="dedupe" checked> 拆分时去重（每张 sheet 只留首次出现的行，重复行单列「重复号码」）</label>
+      <label><input type="checkbox" id="extract"> 从文本中提取号码（新增「提取号码」列，一格多号拆成多行）</label>
+    </div>
+    <div class="row">
+      <span>拆分方式</span>
+      <label><input type="radio" name="mode" id="modeFour" checked> 四大（移动/联通/电信/广电）</label>
+      <label><input type="radio" name="mode" id="modeThree"> 三大（广电并入「其他」）</label>
+      <button id="btnSplit" type="button" class="pri">下载拆分结果 .xlsx</button>
+    </div>
+  </div>
+
+  <div id="result" hidden>
+    <div class="cards" id="cards"></div>
+    <p id="segNote" hidden></p>
+
+    <h2>运营商下单清单</h2>
+    <div class="scroll" id="orderWrap"></div>
+    <div class="row noprint">
+      <button id="btnOrder" type="button" class="pri">下载下单清单 .xlsx</button>
+      <button id="btnCopy" type="button">复制文本</button>
+      <button id="btnPrint" type="button">打印 / 存 PDF</button>
+      <span class="small">单价会记在本机浏览器里，下次直接带出。</span>
+    </div>
+
+    <section id="previewSection">
+      <h2>分类结果预览</h2>
+      <div class="scroll" id="previewWrap"></div>
+    </section>
+  </div>
+
+  <footer>
+    号段依据：工信部公众移动通信网网号核发公告（190/191/193/199 电信、192 广电、195/197/198 移动、166/196 联通）、
+    1349 与 1740-1745 卫星通信、170x 与 162/165/167 虚拟运营商按其落地基础网归类。
+    140 号段各来源归属不一致，未确认前统一记为「未登记号段」，不做猜测。
+    引擎 <span id="engVer"></span>
+  </footer>
+</main>
+
+<script src="../vendor/xlsx.full.min.js"></script>
+<script src="segment.js"></script>
+<script src="app.js"></script>
+<script>document.getElementById('engVer').textContent = 'SheetJS ' + XLSX.version + ' · 号段表 ' + CarrierDB.updated;</script>
+</body>
+</html>

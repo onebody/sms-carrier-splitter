@@ -1,0 +1,9 @@
+# Windows 上要用 powershell -File 跑，中文脚本必须保持 CRLF + BOM
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.ico binary
+*.icns binary
+*.xlsx binary
+*.xls binary
+*.zip binary

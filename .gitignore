@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.pyc
+
+# 构建产物：由 build.py / package.py 生成，发布时作为 Release 附件，不进版本库
+号码运营商分类与拆表.html
+dist/
+
+# 测试跑出来的中间物
+fixtures/out/
+fixtures/report/
